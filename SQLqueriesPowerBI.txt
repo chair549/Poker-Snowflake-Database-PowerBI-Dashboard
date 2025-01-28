@@ -1,0 +1,79 @@
+-- Extract Winrate of hands containg X value card
+SELECT
+    CASE
+        WHEN ph.HoleCards LIKE '%A%' THEN 'Contains Ace'
+        WHEN ph.HoleCards LIKE '%K%' THEN 'Contains King'
+        WHEN ph.HoleCards LIKE '%Q%' THEN 'Contains Queen'
+        WHEN ph.HoleCards LIKE '%J%' THEN 'Contains Jack'
+        WHEN ph.HoleCards LIKE '%10%' THEN 'Contains 10'
+        WHEN ph.HoleCards LIKE '%9%' THEN 'Contains 9'
+        WHEN ph.HoleCards LIKE '%8%' THEN 'Contains 8'
+        WHEN ph.HoleCards LIKE '%7%' THEN 'Contains 7'
+        WHEN ph.HoleCards LIKE '%6%' THEN 'Contains 6'
+        WHEN ph.HoleCards LIKE '%5%' THEN 'Contains 5'
+        WHEN ph.HoleCards LIKE '%4%' THEN 'Contains 4'
+        WHEN ph.HoleCards LIKE '%3%' THEN 'Contains 3'
+        WHEN ph.HoleCards LIKE '%2%' THEN 'Contains 2'
+        ELSE 'Other'
+    END AS CardValueCategory,
+    COUNT(*) AS HandsPlayed,
+    COUNT(CASE WHEN h.WinnerID = ph.PlayerID THEN 1 END) AS Wins,
+    ROUND(COUNT(CASE WHEN h.WinnerID = ph.PlayerID THEN 1 END) * 100.0 / COUNT(*), 2) AS WinRate
+FROM PlayerHands ph
+JOIN Hands h ON ph.HandID = h.HandID
+GROUP BY CardValueCategory
+ORDER BY WinRate DESC;
+
+-- Extract type of and count of actions on the Flop     
+SELECT 
+    ActionType,
+    COUNT(*) AS ActionCount
+FROM 
+    Actions
+WHERE 
+    Street = 'FLOP'
+GROUP BY 
+    ActionType
+ORDER BY 
+    ActionCount DESC;
+
+SELECT 
+    -- Count of all players
+    (SELECT COUNT(*) FROM Players) AS TotalPlayers,
+
+    -- Count of all hands played
+    (SELECT COUNT(*) FROM Hands) AS TotalHandsPlayed,
+
+    -- Total money won/lost by all players
+    (SELECT SUM(Winnings) FROM PlayerHands) AS TotalMoney,
+    
+FROM DUAL;
+
+
+-- Active Players Overtime
+WITH HandsData AS (
+    SELECT 
+        g.GAMEDATE AS Date,
+        COUNT(*) AS TotalHandsPlayed
+    FROM 
+        Hands h
+    JOIN 
+        Games g ON h.GameID = g.GameID
+    GROUP BY 
+        g.GAMEDATE
+),
+AvgHands AS (
+    SELECT AVG(TotalHandsPlayed) AS AvgHands
+    FROM HandsData
+)
+SELECT 
+    Date,
+    TotalHandsPlayed
+FROM 
+    HandsData
+WHERE 
+    TotalHandsPlayed < (SELECT AvgHands * 2 FROM AvgHands)
+ORDER BY 
+    Date;
+
+

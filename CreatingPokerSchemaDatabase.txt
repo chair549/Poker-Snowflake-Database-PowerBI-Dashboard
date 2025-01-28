@@ -1,0 +1,287 @@
+-- Insert random data into Players table
+INSERT INTO Players (Username, JoinDate, TotalHandsPlayed, TotalWinnings)
+SELECT 
+    'Player' || SEQ4() AS Username, -- Generate unique usernames
+    CURRENT_DATE - UNIFORM(0, 365, RANDOM()) AS JoinDate, -- Random join date in the past year
+    UNIFORM(500, 100000, RANDOM()) AS TotalHandsPlayed, -- Random hands played between 
+    ROUND(UNIFORM(-100000.00, 100000.00, RANDOM()), 2) AS TotalWinnings -- Random winnings between 
+FROM TABLE(GENERATOR(ROWCOUNT => 100000)); -- Generate x rows
+
+
+-- Insert many rows with random dates and predefined stakes into Games table
+INSERT INTO Games (GameDate, BigBlindAmount, SmallBlindAmount, AnteAmount)
+SELECT 
+    DATEADD(DAY, UNIFORM(-365, 0, RANDOM()), CURRENT_DATE) AS GameDate, -- Random date in the past year
+    CASE 
+        WHEN ROW_NUMBER % 8 = 1 THEN 0.10  -- 10NL
+        WHEN ROW_NUMBER % 8 = 2 THEN 0.25  -- 25NL
+        WHEN ROW_NUMBER % 8 = 3 THEN 0.50  -- 50NL
+        WHEN ROW_NUMBER % 8 = 4 THEN 1.00  -- 100NL
+        WHEN ROW_NUMBER % 8 = 5 THEN 2.00  -- 200NL
+        WHEN ROW_NUMBER % 8 = 6 THEN 5.00  -- 500NL
+        WHEN ROW_NUMBER % 8 = 7 THEN 10.00 -- 1000NL
+        WHEN ROW_NUMBER % 8 = 0 THEN 20.00 -- 2000NL
+    END AS BigBlindAmount,
+    CASE 
+        WHEN ROW_NUMBER % 8 = 1 THEN 0.05  -- 10NL Small Blind
+        WHEN ROW_NUMBER % 8 = 2 THEN 0.10  -- 25NL Small Blind
+        WHEN ROW_NUMBER % 8 = 3 THEN 0.25  -- 50NL Small Blind
+        WHEN ROW_NUMBER % 8 = 4 THEN 0.50  -- 100NL Small Blind
+        WHEN ROW_NUMBER % 8 = 5 THEN 1.00  -- 200NL Small Blind
+        WHEN ROW_NUMBER % 8 = 6 THEN 2.50  -- 500NL Small Blind
+        WHEN ROW_NUMBER % 8 = 7 THEN 5.00  -- 1000NL Small Blind
+        WHEN ROW_NUMBER % 8 = 0 THEN 10.00 -- 2000NL Small Blind
+    END AS SmallBlindAmount,
+    CASE 
+        WHEN ROW_NUMBER % 8 = 1 THEN 0.01  -- 10NL Ante
+        WHEN ROW_NUMBER % 8 = 2 THEN 0.05  -- 25NL Ante
+        WHEN ROW_NUMBER % 8 = 3 THEN 0.10  -- 50NL Ante
+        WHEN ROW_NUMBER % 8 = 4 THEN 0.25  -- 100NL Ante
+        WHEN ROW_NUMBER % 8 = 5 THEN 0.50  -- 200NL Ante
+        WHEN ROW_NUMBER % 8 = 6 THEN 1.00  -- 500NL Ante
+        WHEN ROW_NUMBER % 8 = 7 THEN 2.50  -- 1000NL Ante
+        WHEN ROW_NUMBER % 8 = 0 THEN 5.00  -- 2000NL Ante
+    END AS AnteAmount
+FROM (
+    SELECT ROW_NUMBER() OVER (ORDER BY SEQ4()) AS ROW_NUMBER 
+    FROM TABLE(GENERATOR(ROWCOUNT => 10000)) -- Generate 10000 rows
+) AS GeneratedRows;
+
+
+-- Insert random data into Hands table with dynamic GameID and WinnerID
+INSERT INTO Hands (HandID, GameID, HandNumber, DealerSeat, PotSize, WinnerID)
+SELECT 
+    SEQ4() + 1 AS HandID, -- Unique HandID
+    UNIFORM(1, 10, RANDOM()) AS GameID, -- Random GameID
+    ROW_NUMBER() OVER (ORDER BY SEQ4()) AS HandNumber,
+    UNIFORM(1, 9, RANDOM()) AS DealerSeat, -- Dealer seat between 1 and 9
+    ROUND(UNIFORM(50.00, 1000.00, RANDOM()), 2) AS PotSize, -- Random pot size
+    UNIFORM(1, 1000, RANDOM()) AS WinnerID -- Temporary WinnerID
+FROM TABLE(GENERATOR(ROWCOUNT => 56385095)); -- Generate 100,000 rows
+
+
+
+-- Insert random data into PlayerHands table
+INSERT INTO PlayerHands (PlayerHandID, HandID, PlayerID, SeatNumber, HoleCards, Winnings)
+SELECT 
+    SEQ4() + 1 AS PlayerHandID, -- Unique PlayerHandID
+    HandID,
+    UNIFORM(1, 10000000, RANDOM()) AS PlayerID, -- Random PlayerID
+    UNIFORM(1, 9, RANDOM()) AS SeatNumber, -- Seat number
+    CONCAT(
+        CASE FLOOR(RANDOM() * 13) -- Random rank for card 1
+            WHEN 0 THEN 'A' WHEN 1 THEN 'K' WHEN 2 THEN 'Q' WHEN 3 THEN 'J' WHEN 4 THEN '10'
+            WHEN 5 THEN '9' WHEN 6 THEN '8' WHEN 7 THEN '7' WHEN 8 THEN '6' WHEN 9 THEN '5'
+            WHEN 10 THEN '4' WHEN 11 THEN '3' WHEN 12 THEN '2' END,
+        CASE FLOOR(RANDOM() * 4) -- Random suit for card 1
+            WHEN 0 THEN 'h' WHEN 1 THEN 'd' WHEN 2 THEN 'c' WHEN 3 THEN 's' END,
+        CASE FLOOR(RANDOM() * 13) -- Random rank for card 2
+            WHEN 0 THEN 'A' WHEN 1 THEN 'K' WHEN 2 THEN 'Q' WHEN 3 THEN 'J' WHEN 4 THEN '10'
+            WHEN 5 THEN '9' WHEN 6 THEN '8' WHEN 7 THEN '7' WHEN 8 THEN '6' WHEN 9 THEN '5'
+            WHEN 10 THEN '4' WHEN 11 THEN '3' WHEN 12 THEN '2' END,
+        CASE FLOOR(RANDOM() * 4) -- Random suit for card 2
+            WHEN 0 THEN 'h' WHEN 1 THEN 'd' WHEN 2 THEN 'c' WHEN 3 THEN 's' END
+    ) AS HoleCards, -- Generate random hole cards
+    0.00 AS Winnings
+FROM Hands;
+
+UPDATE PlayerHands
+SET HoleCards = NULL;
+
+UPDATE PlayerHands
+SET HoleCards = CONCAT(
+    -- First card rank
+    CASE MOD(PlayerHandID, 13)
+        WHEN 0 THEN 'A' WHEN 1 THEN 'K' WHEN 2 THEN 'Q' WHEN 3 THEN 'J' WHEN 4 THEN '10'
+        WHEN 5 THEN '9' WHEN 6 THEN '8' WHEN 7 THEN '7' WHEN 8 THEN '6' WHEN 9 THEN '5'
+        WHEN 10 THEN '4' WHEN 11 THEN '3' WHEN 12 THEN '2' END,
+    -- First card suit
+    CASE MOD(PlayerHandID, 4)
+        WHEN 0 THEN 'h' WHEN 1 THEN 'd' WHEN 2 THEN 'c' WHEN 3 THEN 's' END,
+    ', ',
+    -- Second card rank (offset by PlayerHandID to ensure randomness)
+    CASE MOD(PlayerHandID + 7, 13)
+        WHEN 0 THEN 'A' WHEN 1 THEN 'K' WHEN 2 THEN 'Q' WHEN 3 THEN 'J' WHEN 4 THEN '10'
+        WHEN 5 THEN '9' WHEN 6 THEN '8' WHEN 7 THEN '7' WHEN 8 THEN '6' WHEN 9 THEN '5'
+        WHEN 10 THEN '4' WHEN 11 THEN '3' WHEN 12 THEN '2' END,
+    -- Second card suit (offset by PlayerHandID to ensure randomness)
+    CASE MOD(PlayerHandID + 3, 4)
+        WHEN 0 THEN 'h' WHEN 1 THEN 'd' WHEN 2 THEN 'c' WHEN 3 THEN 's' END
+)
+WHERE HoleCards IS NULL;
+
+
+
+
+-- Assign Winnings
+-- Distribute winnings to the winner in each hand
+
+CREATE TEMPORARY TABLE TempWinners AS
+SELECT 
+    ph.HandID,
+    MIN(ph.PlayerID) AS WinnerID -- Choose the first PlayerID as the winner
+FROM PlayerHands ph
+GROUP BY ph.HandID;
+
+UPDATE Hands
+SET WinnerID = t.WinnerID
+FROM TempWinners t
+WHERE Hands.HandID = t.HandID;
+DROP TABLE TempWinners;
+
+-- Insert random data into Actions table
+INSERT INTO Actions (HandID, PlayerID, ActionSequence, ActionType, ActionAmount, Street, Timestamp)
+SELECT 
+    ph.HandID, -- Valid HandID from PlayerHands table
+    ph.PlayerID, -- Valid PlayerID from PlayerHands table
+    ROW_NUMBER() OVER (PARTITION BY ph.HandID ORDER BY RANDOM()) AS ActionSequence, -- Sequential actions per hand
+    -- Randomly pick ActionType from the array of possible actions
+    CASE 
+        WHEN CEIL(UNIFORM(1, 6, RANDOM())) = 1 THEN 'FOLD'
+        WHEN CEIL(UNIFORM(1, 6, RANDOM())) = 2 THEN 'CALL'
+        WHEN CEIL(UNIFORM(1, 6, RANDOM())) = 3 THEN 'CHECK'
+        WHEN CEIL(UNIFORM(1, 6, RANDOM())) = 4 THEN 'BET'
+        WHEN CEIL(UNIFORM(1, 6, RANDOM())) = 5 THEN 'RAISE'
+        ELSE 'ALL-IN'
+    END AS ActionType, -- Random poker action
+    CASE 
+        WHEN CEIL(UNIFORM(1, 4, RANDOM())) = 1 THEN ROUND(UNIFORM(1.00, 100.00, RANDOM()), 2) 
+        ELSE NULL 
+    END AS ActionAmount, -- Amount only for BET, RAISE, or ALL-IN
+    -- Randomize the street for each action (PREFLOP, FLOP, TURN, RIVER)
+    CASE 
+        WHEN CEIL(UNIFORM(1, 4, RANDOM())) = 1 THEN 'PREFLOP'
+        WHEN CEIL(UNIFORM(1, 4, RANDOM())) = 2 THEN 'FLOP'
+        WHEN CEIL(UNIFORM(1, 4, RANDOM())) = 3 THEN 'TURN'
+        ELSE 'RIVER'
+    END AS Street, -- Random street
+    DATEADD(SECOND, -CEIL(UNIFORM(0, 3600, RANDOM())), CURRENT_TIMESTAMP) AS Timestamp -- Random timestamp in the past hour
+FROM 
+    PlayerHands ph -- PlayerHands as the base
+QUALIFY ROW_NUMBER() OVER (PARTITION BY ph.HandID ORDER BY RANDOM()) <= 20; -- Limit to 20 actions per hand
+
+
+-- Populate community cards
+INSERT INTO CommunityCards (HandID, Flop, Turn, River)
+SELECT 
+    HandID,
+    -- Generate Flop (3 cards)
+    CONCAT(
+        CASE FLOOR(RANDOM() * 13) 
+            WHEN 0 THEN 'A' WHEN 1 THEN 'K' WHEN 2 THEN 'Q' WHEN 3 THEN 'J' WHEN 4 THEN '10'
+            WHEN 5 THEN '9' WHEN 6 THEN '8' WHEN 7 THEN '7' WHEN 8 THEN '6' WHEN 9 THEN '5'
+            WHEN 10 THEN '4' WHEN 11 THEN '3' WHEN 12 THEN '2' END,
+        CASE FLOOR(RANDOM() * 4) 
+            WHEN 0 THEN 'h' WHEN 1 THEN 'd' WHEN 2 THEN 'c' WHEN 3 THEN 's' END,
+        CASE FLOOR(RANDOM() * 13) 
+            WHEN 0 THEN 'A' WHEN 1 THEN 'K' WHEN 2 THEN 'Q' WHEN 3 THEN 'J' WHEN 4 THEN '10'
+            WHEN 5 THEN '9' WHEN 6 THEN '8' WHEN 7 THEN '7' WHEN 8 THEN '6' WHEN 9 THEN '5'
+            WHEN 10 THEN '4' WHEN 11 THEN '3' WHEN 12 THEN '2' END,
+        CASE FLOOR(RANDOM() * 4) 
+            WHEN 0 THEN 'h' WHEN 1 THEN 'd' WHEN 2 THEN 'c' WHEN 3 THEN 's' END,
+        CASE FLOOR(RANDOM() * 13) 
+            WHEN 0 THEN 'A' WHEN 1 THEN 'K' WHEN 2 THEN 'Q' WHEN 3 THEN 'J' WHEN 4 THEN '10'
+            WHEN 5 THEN '9' WHEN 6 THEN '8' WHEN 7 THEN '7' WHEN 8 THEN '6' WHEN 9 THEN '5'
+            WHEN 10 THEN '4' WHEN 11 THEN '3' WHEN 12 THEN '2' END,
+        CASE FLOOR(RANDOM() * 4) 
+            WHEN 0 THEN 'h' WHEN 1 THEN 'd' WHEN 2 THEN 'c' WHEN 3 THEN 's' END
+    ) AS Flop,
+    -- Generate Turn (1 card)
+    CONCAT(
+        CASE FLOOR(RANDOM() * 13) 
+            WHEN 0 THEN 'A' WHEN 1 THEN 'K' WHEN 2 THEN 'Q' WHEN 3 THEN 'J' WHEN 4 THEN '10'
+            WHEN 5 THEN '9' WHEN 6 THEN '8' WHEN 7 THEN '7' WHEN 8 THEN '6' WHEN 9 THEN '5'
+            WHEN 10 THEN '4' WHEN 11 THEN '3' WHEN 12 THEN '2' END,
+        CASE FLOOR(RANDOM() * 4) 
+            WHEN 0 THEN 'h' WHEN 1 THEN 'd' WHEN 2 THEN 'c' WHEN 3 THEN 's' END
+    ) AS Turn,
+    -- Generate River (1 card)
+    CONCAT(
+        CASE FLOOR(RANDOM() * 13) 
+            WHEN 0 THEN 'A' WHEN 1 THEN 'K' WHEN 2 THEN 'Q' WHEN 3 THEN 'J' WHEN 4 THEN '10'
+            WHEN 5 THEN '9' WHEN 6 THEN '8' WHEN 7 THEN '7' WHEN 8 THEN '6' WHEN 9 THEN '5'
+            WHEN 10 THEN '4' WHEN 11 THEN '3' WHEN 12 THEN '2' END,
+        CASE FLOOR(RANDOM() * 4) 
+            WHEN 0 THEN 'h' WHEN 1 THEN 'd' WHEN 2 THEN 'c' WHEN 3 THEN 's' END
+    ) AS River
+FROM Hands;
+
+SELECT * 
+FROM CommunityCards
+LIMIT 10;
+
+UPDATE PlayerHands
+SET Winnings = Winnings * UNIFORM(0.1, 5, RANDOM())
+WHERE PlayerID IN (
+    SELECT PlayerID FROM Players SAMPLE (100) -- Randomly pick 5 players for hot streak
+);
+
+UPDATE Actions
+SET ActionType = CASE
+    WHEN UNIFORM(0, 1, RANDOM()) < 0.5 THEN 'CALL'
+    WHEN UNIFORM(0, 1, RANDOM()) < 0.3 THEN 'FOLD'
+    WHEN UNIFORM(0, 1, RANDOM()) < 0.15 THEN 'CHECK'
+    WHEN UNIFORM(0, 1, RANDOM()) < 0.04 THEN 'RAISE'
+    ELSE 'ALL-IN'
+END;
+
+-- Add skill levels
+ALTER TABLE Players ADD SkillLevel VARCHAR(20);
+UPDATE Players
+SET SkillLevel = CASE 
+    WHEN UNIFORM(0, 1, RANDOM()) < 0.1 THEN 'Expert'
+    WHEN UNIFORM(0, 1, RANDOM()) < 0.4 THEN 'Average'
+    ELSE 'Recreational'
+END;
+
+-- Adjust winnings by skill level
+UPDATE PlayerHands ph
+SET Winnings = ROUND(Winnings * CASE 
+    WHEN p.SkillLevel = 'Expert' THEN UNIFORM(1.5, 2.5, RANDOM())
+    WHEN p.SkillLevel = 'Recreational' THEN UNIFORM(0.5, 0.8, RANDOM())
+    ELSE 1
+END, 2)
+FROM Players p
+WHERE ph.PlayerID = p.PlayerID;
+
+
+
+
+
+-- Create a temporary table to store the WinnerID for each HandID
+CREATE OR REPLACE TEMP TABLE StrongHandsWinners AS
+SELECT 
+    ph.HandID,
+    ph.PlayerID AS WinnerID
+FROM PlayerHands ph
+WHERE ph.HoleCards LIKE '%A%' OR ph.HoleCards LIKE '%K%' -- Players with Aces or Kings
+QUALIFY ROW_NUMBER() OVER (PARTITION BY ph.HandID ORDER BY ph.PlayerID) = 1; -- Pick one WinnerID per HandID
+
+
+-- Update the Hands table using the temporary table
+UPDATE Hands
+SET WinnerID = shw.WinnerID
+FROM StrongHandsWinners shw
+WHERE Hands.HandID = shw.HandID;
+
+
+-- Boost winnings for players with Aces or Kings who won
+UPDATE PlayerHands
+SET Winnings = ROUND(Winnings * UNIFORM(1.5, 3, RANDOM()), 2) -- Boost winnings by 1.5x to 3x
+WHERE PlayerID IN (
+    SELECT WinnerID
+    FROM Hands
+    WHERE WinnerID IN (
+        SELECT PlayerID
+        FROM PlayerHands
+        WHERE HoleCards LIKE '%A%' OR HoleCards LIKE '%K%'
+    )
+);
+
+-- Check if winnerID matches playerID for all hands, should show no result
+SELECT h.HandID, h.WinnerID
+FROM Hands h
+WHERE h.WinnerID NOT IN (
+    SELECT PlayerID FROM PlayerHands WHERE HandID = h.HandID
+);
+

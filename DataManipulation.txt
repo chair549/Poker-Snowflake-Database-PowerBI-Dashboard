@@ -1,0 +1,55 @@
+--Manipulate Winrates based on Cards Held
+CREATE OR REPLACE TEMPORARY TABLE TempWinners AS
+WITH PlayerMultipliers AS (
+    SELECT 
+        ph.HandID,
+        ph.PlayerID,
+        CASE
+            WHEN ph.HoleCards LIKE '%A%' THEN RANDOM() * 10 -- Boost winrate for Aces
+            WHEN ph.HoleCards LIKE '%K%' THEN RANDOM() * 5 -- Boost winrate for Aces
+            WHEN ph.HoleCards LIKE '%Q%' THEN RANDOM() * 3 -- Boost winrate for Aces
+            WHEN ph.HoleCards LIKE '%J%' THEN RANDOM() * 2 -- Boost winrate for Aces
+            WHEN ph.HoleCards LIKE '%2%' THEN RANDOM() * 0.1 -- Reduce winrate for 2s
+            ELSE RANDOM() -- Default random chance
+        END AS Multiplier
+    FROM PlayerHands ph
+),
+RankedPlayers AS (
+    SELECT 
+        HandID,
+        PlayerID,
+        ROW_NUMBER() OVER (PARTITION BY HandID ORDER BY Multiplier DESC) AS Rank
+    FROM PlayerMultipliers
+)
+SELECT
+    HandID,
+    PlayerID AS WinnerID
+FROM RankedPlayers
+WHERE Rank = 1;
+
+MERGE INTO Hands h
+USING TempWinners tw
+ON h.HandID = tw.HandID
+WHEN MATCHED THEN
+    UPDATE SET h.WinnerID = tw.WinnerID;
+
+
+-- Manipulate frequency of actions, e.g ALL-IN should occur more rarely than other actions 
+DELETE FROM Actions
+WHERE ActionType = 'ALL-IN'
+AND Street = 'FLOP'
+AND RANDOM() < 0.9;  -- Removes 90% of the ALL-IN actions on the FLOP
+
+DELETE FROM Actions
+WHERE ActionType = 'FOLD'
+AND Street = 'FLOP'
+AND RANDOM() < 0.5;  -- Removes 50% of the FOLD actions on the FLOP
+
+DELETE FROM Actions
+WHERE ActionType = 'CALL'
+AND Street = 'FLOP'
+AND RANDOM() < 0.5;  -- Removes 50% of the CALL actions on the FLOP
+
+
+    
+
