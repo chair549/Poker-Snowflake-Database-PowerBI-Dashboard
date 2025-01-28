@@ -37,7 +37,7 @@ This project demonstrates how to **store, manipulate, and analyze poker gameplay
     - **CommunityCards** – Flop, turn, and river cards
 
 ### 2️⃣ **Data Manipulation in Snowflake**
-❌ The randomly generated data falls victim to all the typical issues and biases that come with synthetic data. Some of these issues and challenges are listed below
+❌ **The randomly generated data falls victim to all the typical issues and biases that come with synthetic data. Some of these issues and challenges are listed below**
 - Lack of Real-World Variability – Synthetic data often lacks the complexity and nuances of real-world data, making it less representative of actual scenarios.
 - Data Quality & Validation – Unlike real-world data, synthetic data requires rigorous validation to ensure it reflects realistic patterns and distributions.
 - Bias Introduction – If the data generation process is not carefully designed, biases can be unintentionally introduced, leading to misleading analysis or model outcomes.
@@ -87,16 +87,22 @@ This project demonstrates how to **store, manipulate, and analyze poker gameplay
 
 ## 📌 Key Insights
 
-🔹 **Aces (19.6%) and Kings (11.0%) have the highest win rates**🔹 **Most common action on the flop: CHECK (26.09%)**🔹 **All-in moves are rare, occurring <5% of the time**🔹 **Player trends fluctuate daily, peaking mid-year**
+-🔹 **Aces (19.6%) and Kings (11.0%) have the highest win rates**
+-🔹 **Most common action on the flop: CHECK (26.09%)**
+-🔹 **All-in moves are rare, occurring <5% of the time**
+-🔹 **Player trends fluctuate daily, peaking mid-year**
 
 ---
 
 ## 🚀 Future Improvements
 
-🔹 **Machine Learning Model** – Predict player strategies using Snowflake ML integration🔹 **Real-Time Data Streaming** – Use **Snowflake Snowpipe** to analyze live poker hands🔹 **Multi-Table Tournament Analysis** – Expand beyond cash games
+-🔹 **Machine Learning Model** – Predict player strategies using Snowflake ML integration
+-🔹 **Real-Time Data Streaming** – Use **Snowflake Snowpipe** to analyze live poker hands
+-🔹 **Multi-Table Tournament Analysis** – Expand beyond cash games
 
 ---
 
 ## 📩 Contact
 
 For questions or collaboration, feel free to reach out! 🚀
+
