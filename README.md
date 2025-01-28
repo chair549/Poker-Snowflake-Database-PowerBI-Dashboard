@@ -37,6 +37,12 @@ This project demonstrates how to **store, manipulate, and analyze poker gameplay
     - **CommunityCards** – Flop, turn, and river cards
 
 ### 2️⃣ **Data Manipulation in Snowflake**
+❌ The randomly generated data falls victim to all the typical issues and biases that come with synthetic data. Some of these issues and challenges are listed below
+- Lack of Real-World Variability – Synthetic data often lacks the complexity and nuances of real-world data, making it less representative of actual scenarios.
+- Data Quality & Validation – Unlike real-world data, synthetic data requires rigorous validation to ensure it reflects realistic patterns and distributions.
+- Bias Introduction – If the data generation process is not carefully designed, biases can be unintentionally introduced, leading to misleading analysis or model outcomes.
+
+✔️ **This Data Manipulation file aims to minimise and amend some of these issues with randomly generated synthetic data**
 
 - **📝 `DataManipulation.txt`**
   - Adjusts **win rates dynamically based on hole cards**
