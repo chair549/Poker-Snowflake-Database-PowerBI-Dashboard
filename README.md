@@ -87,18 +87,18 @@ This project demonstrates how to **store, manipulate, and analyze poker gameplay
 
 ## 📌 Key Insights
 
--🔹 **Aces (19.6%) and Kings (11.0%) have the highest win rates**
--🔹 **Most common action on the flop: CHECK (26.09%)**
--🔹 **All-in moves are rare, occurring <5% of the time**
--🔹 **Player trends fluctuate daily, peaking mid-year**
+- 🔹 **Aces (19.6%) and Kings (11.0%) have the highest win rates**
+- 🔹 **Most common action on the flop: CHECK (26.09%)**
+- 🔹 **All-in moves are rare, occurring <5% of the time**
+- 🔹 **Player trends fluctuate daily, peaking mid-year**
 
 ---
 
 ## 🚀 Future Improvements
 
--🔹 **Machine Learning Model** – Predict player strategies using Snowflake ML integration
--🔹 **Real-Time Data Streaming** – Use **Snowflake Snowpipe** to analyze live poker hands
--🔹 **Multi-Table Tournament Analysis** – Expand beyond cash games
+- 🔹 **Machine Learning Model** – Predict player strategies using Snowflake ML integration
+- 🔹 **Real-Time Data Streaming** – Use **Snowflake Snowpipe** to analyze live poker hands
+- 🔹 **Multi-Table Tournament Analysis** – Expand beyond cash games
 
 ---
 
