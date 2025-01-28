@@ -13,7 +13,11 @@ This project demonstrates how to **store, manipulate, and analyze poker gameplay
 
 ## Features
 
-✅ **Snowflake-powered data warehouse** for scalable storage and processing✅ **Power BI dashboard** for real-time poker game insights✅ **Win Rate Analysis** – Determines hand strength based on hole cards✅ **Player Behavior Tracking** – Flop action distribution (check, call, raise, etc.)✅ **Game Trends & Player Activity** – Track engagement over time
+✅ **Snowflake-powered data warehouse** for scalable storage and processing
+✅ **Power BI dashboard** for real-time poker game insights
+✅ **Win Rate Analysis** – Determines hand strength based on hole cards
+✅ **Player Behavior Tracking** – Flop action distribution (check, call, raise, etc.)
+✅ **Game Trends & Player Activity** – Track engagement over time
 
 ---
 
